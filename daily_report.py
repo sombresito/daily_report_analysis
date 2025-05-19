@@ -83,13 +83,36 @@ def flatten_report(report: dict) -> list[dict]:
     return items
 
 
-def chunk_items(items, chunk_size):
-    chunks = []
+def chunk_items(items: list[dict], chunk_size: int) -> list[str]:
+    """
+    Разбивает список элементов (из flatten_report) на куски текста длиной <= chunk_size символов.
+    Каждый элемент items — словарь с ключами path, status, uid.
+    Возвращает список строк, готовых для передачи в модель.
+    """
+    chunks: list[str] = []
+    current = ""
+
     for it in items:
-        txt = it['text']
-        for i in range(0, len(txt), chunk_size):
-            chunks.append(txt[i:i+chunk_size])
+        # Формируем текст для одного теста
+        txt = f"{it['path']} [{it['status']}]"
+        if it.get("uid"):
+            txt += f" (uid={it['uid']})"
+
+        # Если добавление переполнит текущий chunk — сохраняем его и начинаем новый
+        if len(current) + len(txt) + 1 > chunk_size:
+            if current:
+                chunks.append(current)
+            current = txt
+        else:
+            # добавляем в текущий, разделяя переводом строки
+            current = f"{current}\n{txt}" if current else txt
+
+    # последний непустой кусок
+    if current:
+        chunks.append(current)
+
     return chunks
+
 
 def build_index(chunks):
     if SentenceTransformer is None or faiss is None:
@@ -141,9 +164,9 @@ def ask_model_stream(prompt: str,
 
     full_response = ""
     for line in resp.iter_lines(decode_unicode=True):
-        if not line or not line.strip().startswith(b"data:"):
+        if not line or not line.strip().startswith("data:"):
             continue
-        data_str = line.strip()[len(b"data:"):].decode('utf-8')
+        data_str = line.strip()[len("data:"):].strip()
         try:
             chunk = json.loads(data_str)
             delta = chunk["choices"][0].get("delta", {})

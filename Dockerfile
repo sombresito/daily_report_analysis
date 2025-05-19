@@ -12,6 +12,6 @@ COPY daily_report.py uuid_service.py entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
 
 VOLUME /data
-EXPOSE 5000
+EXPOSE 5005
 
 ENTRYPOINT ["/app/entrypoint.sh"]
