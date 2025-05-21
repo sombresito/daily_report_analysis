@@ -1,17 +1,25 @@
+# Dockerfile
 FROM python:3.10-slim
 
+# Установка зависимостей
+RUN apt-get update && apt-get install -y \
+    git \
+    ca-certificates \
+    && update-ca-certificates
+
+# Копируем файлы проекта
 WORKDIR /app
+COPY . /app
 
-COPY requirements.txt .
-# Configure pip to trust PyPI hosts and bypass SSL verification
-RUN pip config set global.trusted-host pypi.org \
-    && pip config set global.trusted-host files.pythonhosted.org \
-    && pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+# Устанавливаем зависимости с обходом SSL-проверки
+RUN pip install --no-cache-dir \
+    --trusted-host pypi.org \
+    --trusted-host pypi.python.org \
+    --trusted-host files.pythonhosted.org \
+    -r requirements.txt
 
-COPY daily_report.py uuid_service.py entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
+# Открываем порт для FastAPI
+EXPOSE 8000
 
-VOLUME /data
-EXPOSE 5005
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Команда запуска
+CMD ["uvicorn", "main_api:app", "--host", "0.0.0.0", "--port", "8000"]
