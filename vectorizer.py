@@ -31,13 +31,13 @@ def extract_text_chunks(report_json: dict) -> List[str]:
     return chunks
 
 
-def save_embedding(team_name: str, embedding: np.ndarray):
+def save_embedding(team_name: str, embedding: np.ndarray, chunks: List[str]):
     team_folder = BASE_DIR / team_name
     team_folder.mkdir(parents=True, exist_ok=True)
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     path = team_folder / f"emb_{timestamp}.npz"
-    np.savez_compressed(path, embedding)
+    np.savez_compressed(path, embedding=embedding, chunks=np.array(chunks))
     print(f"💾 Сохранён векторный файл: {path.name}")
 
     cleanup_old_embeddings(team_folder)
@@ -60,4 +60,4 @@ def vectorize_report(report_json: dict, team_folder_name: str):
         return
 
     embedding = model.encode(chunks, show_progress_bar=False)
-    save_embedding(team_folder_name, np.array(embedding).astype("float32"))
+    save_embedding(team_folder_name, np.array(embedding).astype("float32"), chunks)
