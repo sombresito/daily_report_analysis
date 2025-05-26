@@ -7,11 +7,10 @@ import numpy as np
 import time
 
 BASE_DIR = Path("/data/vector_store")
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+MODEL_NAME = "models/all-MiniLM-L6-v2"
 MAX_EMBEDDINGS = 3
 
 model = SentenceTransformer(MODEL_NAME)
-
 
 def extract_text_chunks(report_json: dict) -> List[str]:
     chunks = []
@@ -30,7 +29,6 @@ def extract_text_chunks(report_json: dict) -> List[str]:
     recurse(report_json)
     return chunks
 
-
 def save_embedding(team_name: str, embedding: np.ndarray, chunks: List[str]):
     team_folder = BASE_DIR / team_name
     team_folder.mkdir(parents=True, exist_ok=True)
@@ -42,7 +40,6 @@ def save_embedding(team_name: str, embedding: np.ndarray, chunks: List[str]):
 
     cleanup_old_embeddings(team_folder)
 
-
 def cleanup_old_embeddings(folder: Path):
     files = sorted(folder.glob("emb_*.npz"), key=os.path.getctime, reverse=True)
     for old_file in files[MAX_EMBEDDINGS:]:
@@ -51,7 +48,6 @@ def cleanup_old_embeddings(folder: Path):
             print(f"🗑️ Удалён старый эмбеддинг: {old_file.name}")
         except Exception as e:
             print(f"⚠️ Не удалось удалить {old_file.name}: {e}")
-
 
 def vectorize_report(report_json: dict, team_folder_name: str):
     chunks = extract_text_chunks(report_json)

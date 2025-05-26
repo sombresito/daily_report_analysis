@@ -9,5 +9,10 @@ services:
     volumes:
       - ./data/vector_store:/data/vector_store
     environment:
-      - TRANSFORMERS_CACHE=/app/cache
+      - MODEL_HOST=localhost
+    healthcheck:
+      test: curl --silent --fail http://localhost:11434/api/tags || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped

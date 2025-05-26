@@ -1,5 +1,6 @@
 fastapi
 uvicorn
-transformers
 sentence-transformers
+transformers
 numpy
+requests
